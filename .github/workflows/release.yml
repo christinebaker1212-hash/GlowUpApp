@@ -1,0 +1,56 @@
+# Builds, tests, signs and publishes the APK as a GitHub release when versionName in app/build.gradle is raised.
+# The app's updater reads releases/latest. Needs the GLOWUP_KEY_PASSWORD secret (the signing key's password).
+name: Release
+on:
+  push:
+    branches: [main]
+    paths: ['app/build.gradle', 'release_notes/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GLOWUP_KEY_PASSWORD: ${{ secrets.GLOWUP_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        id: v
+        run: |
+          VER=$(sed -n "s/.*versionName '\([0-9.]*\)'.*/\1/p" app/build.gradle)
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VER" >/dev/null 2>&1; then
+            echo "v$VER is already released: nothing to do"; echo "skip=1" >> "$GITHUB_OUTPUT"
+          fi
+          test -f "release_notes/$VER.md" || { echo "::error::release_notes/$VER.md is missing"; exit 1; }
+      - name: Signing key
+        if: steps.v.outputs.skip != '1'
+        run: |
+          if [ -z "$GLOWUP_KEY_PASSWORD" ]; then
+            echo "::error::Add the GLOWUP_KEY_PASSWORD secret: Settings > Secrets and variables > Actions > New repository secret"
+            exit 1
+          fi
+      - uses: actions/setup-java@v4
+        if: steps.v.outputs.skip != '1'
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build and test
+        if: steps.v.outputs.skip != '1'
+        run: ./gradlew --no-daemon testReleaseUnitTest assembleRelease
+      - name: Check the signature
+        if: steps.v.outputs.skip != '1'
+        run: |
+          BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk \
+            | grep -q "SHA-256 digest: bc8b1baa558988e3261b9b2c0355ad57541676383521a79f43a8f1623696386d" \
+            || { echo "::error::The APK isn't signed with the GLOW UP key: phones would refuse the update"; exit 1; }
+      - name: Publish
+        if: steps.v.outputs.skip != '1'
+        run: |
+          VER=${{ steps.v.outputs.ver }}
+          cp app/build/outputs/apk/release/app-release.apk "GlowUp-$VER.apk"
+          gh release create "v$VER" "GlowUp-$VER.apk" --title "GLOW UP $VER" --notes-file "release_notes/$VER.md" --latest

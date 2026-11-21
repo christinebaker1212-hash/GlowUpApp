@@ -1,0 +1,7 @@
+build/
+.gradle/
+local.properties
+*.iml
+.idea/
+# the signing password: never commit it (the release workflow reads the GLOWUP_KEY_PASSWORD secret)
+keystore/keystore.properties

@@ -1,0 +1,69 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.glowup.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.glowup.app'
+        minSdk 26
+        targetSdk 35
+        // Raise versionName for a release (and add release_notes/<version>.md); versionCode follows it
+        versionName '1.1.0'
+        versionCode versionName.tokenize('.').collect { it as int }.with { it[0] * 10000 + it[1] * 100 + it[2] }
+    }
+
+    signingConfigs {
+        release {
+            // Keep glowup-release.jks and its password safe: every future update must be signed with it.
+            // The key is in keystore/ (protected by a long random password); the password comes from
+            // keystore/keystore.properties (never committed) or the GLOWUP_KEY_PASSWORD secret in the release workflow.
+            def ks = file('../keystore/glowup-release.jks')
+            def pw = System.getenv('GLOWUP_KEY_PASSWORD')
+            def pf = file('../keystore/keystore.properties')
+            if (!pw && pf.exists()) {
+                def props = new Properties()
+                pf.withInputStream { props.load(it) }
+                pw = props['storePassword']
+            }
+            if (ks.exists() && pw) {
+                storeFile ks
+                storePassword pw
+                keyAlias 'glowup'
+                keyPassword pw
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    // The screens drawn on a desktop JVM (Robolectric's real graphics): pictures in app/build/screens
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all {
+                systemProperty 'robolectric.dependency.repo.url', 'https://maven-central.storage-download.googleapis.com/maven2'
+                systemProperty 'robolectric.graphicsMode', 'NATIVE'
+                systemProperty 'screens.out', file("$buildDir/screens").absolutePath
+                testLogging { showStandardStreams = true }
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+}
