@@ -11,7 +11,7 @@ android {
         minSdk 26
         targetSdk 35
         // Raise versionName for a release (and add release_notes/<version>.md); versionCode follows it
-        versionName '1.1.0'
+        versionName '1.2.0'
         versionCode versionName.tokenize('.').collect { it as int }.with { it[0] * 10000 + it[1] * 100 + it[2] }
     }
 

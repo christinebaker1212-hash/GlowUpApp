@@ -13,6 +13,13 @@ The user's daily workout game for Android (plain Java, no third-party libraries;
 - Her baseline (2026-11-21): sit & rise 5, one-leg 53 s R / 43 s L, chair 13, push-ups 2.3 (full equivalents),
   bridges 14, plank 2 s, march 108 -> 603, OFF THE COUCH III (~20th percentile). AppTest.herBaseline keeps it.
 
+## Exercise demonstrations (1.2.0: the user, 2026-11-21: "visual examples... I have no idea how to do any of these")
+- Demo.java: each exercise (and the tests' sit_rise / jog) as keyframed poses of a jointed figure (angles: 0 down,
+  90 forward, 180 up; footTo / handTo IK, line() for straight-body planks and push-ups, ground()); DemoView.java draws
+  and loops them (muscles in pink, a heart for cardio, cue words); HowTo.java is the how-to page and EXERCISE LIBRARY.
+- A new exercise in Plan.ALL needs its Demo.get case. Check poses by eye: AppTest.demoSheets draws every keyframe into
+  app/build/screens/demo_*.png.
+
 ## Data
 - State.SCHEMA is the save format. A change to how ratings are computed raises it and converts old saves in
   Logic.migrate (re-rate tests from their raw results, shift ratings and history by the difference). Never drop data.

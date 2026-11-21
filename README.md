@@ -22,6 +22,7 @@ The key is valid for 100 years.
 - Science.java: test curves (result -> rating), age grading, Elo, ranks, levels, step goals
 - Plan.java: the exercise library, the weekly plan, targets from ratings, automatic harder versions
 - Logic.java: daily upkeep (steps, streaks, detraining), workout and test results, trophies
+- Demo.java / DemoView.java / HowTo.java: animated exercise demonstrations and how-to pages
 - Updater.java: in-app updates from GitHub releases
 - Steps.java: the hardware step counter, read every 15 minutes; Reminder.java: the daily notification
 - MainActivity / TestFlow / WorkoutFlow / Screens: the screens; State / Store: data, backup and restore

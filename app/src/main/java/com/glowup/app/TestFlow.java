@@ -145,8 +145,24 @@ final class TestFlow {
         col.addView(xb, Ui.lp(a, 6));
         col.addView(Ui.head(a, title, 28, Ui.TEXT), Ui.lp(a, 12));
         col.addView(Ui.text(a, measures, 13, Ui.CYAN), Ui.lp(a, 2));
+        demoBox = new android.widget.FrameLayout(a);
+        col.addView(demoBox, Ui.lp(a, 10));
+        String demo = DEMOS[n - 1];
+        if (title.startsWith("BONUS")) demo = "sl_stand_closed";
+        setDemo(demo);
         col.addView(Ui.text(a, how, 15, Ui.TEXT), Ui.lp(a, 10));
         return col;
+    }
+
+    /** Each test's demonstration (push-ups and planks follow the version picked). */
+    static final String[] DEMOS = {"sit_rise", "single_leg_stand", "chair_squat", "wall_pushup", "glute_bridge", "knee_plank", "march", "jog"};
+    static final String[] PU_DEMO = {"wall_pushup", "counter_pushup", "knee_pushup", "pushup"};
+    static final String[] PL_DEMO = {"wall_plank", "counter_plank", "knee_plank", "plank"};
+    android.widget.FrameLayout demoBox;
+
+    void setDemo(String id) {
+        demoBox.removeAllViews();
+        demoBox.addView(HowTo.card(a, id, 200, Plan.ex(id).id.equals(id)));
     }
 
     void cant(LinearLayout col, String key, Runnable next) {
@@ -260,10 +276,11 @@ final class TestFlow {
             cs[i] = Ui.head(a, PU_VAR[i], 14, Ui.TEXT);
             cs[i].setGravity(Gravity.CENTER);
             cs[i].setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 12));
-            cs[i].setOnClickListener(v -> { puVar = k; paint.run(); });
+            cs[i].setOnClickListener(v -> { puVar = k; paint.run(); setDemo(PU_DEMO[k]); });
             chips.addView(cs[i], Ui.weight(a, 1, 3));
         }
         paint.run();
+        setDemo(PU_DEMO[puVar]);
         col.addView(chips, Ui.lp(a, 14));
         col.addView(Ui.text(a, "REPS", 12, Ui.DIM), Ui.lp(a, 16));
         Widgets.Stepper sp = new Widgets.Stepper(a, 0, 1, 0, 150);
@@ -312,10 +329,11 @@ final class TestFlow {
             cs[i] = Ui.head(a, PL_VAR[i], 14, Ui.TEXT);
             cs[i].setGravity(Gravity.CENTER);
             cs[i].setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 12));
-            cs[i].setOnClickListener(v -> { plVar = k; paint.run(); });
+            cs[i].setOnClickListener(v -> { plVar = k; paint.run(); setDemo(PL_DEMO[k]); });
             chips.addView(cs[i], Ui.weight(a, 1, 3));
         }
         paint.run();
+        setDemo(PL_DEMO[plVar]);
         col.addView(chips, Ui.lp(a, 14));
         Widgets.Watch wt = new Widgets.Watch(a, false, 0, 600);
         col.addView(wt, Ui.lp(a, 14));

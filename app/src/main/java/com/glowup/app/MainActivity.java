@@ -343,7 +343,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             col.addView(Ui.button(this, "START RECOVERY FLOW", Ui.GREEN, v -> startWorkout(playType, 1, false, false)), Ui.lp(this, 18));
             return;
         }
-        col.addView(Ui.text(this, "Choose your difficulty. The workout is a rated match: beat it and your rating "
+        col.addView(Ui.text(this, "Tap any exercise below to see how it's done. Choose your difficulty. The workout is a rated match: beat it and your rating "
             + "climbs, fall short and it drops.", 14, Ui.DIM), Ui.lp(this, 6));
 
         LinearLayout diffRow = Ui.hbox(this);
@@ -429,6 +429,10 @@ public class MainActivity extends Activity implements SensorEventListener {
             t.addView(Ui.text(this, e.cat >= 0 ? Science.CAT_LABEL[e.cat] : "WARM-UP / STRETCH", 11, Ui.DIM));
             row.addView(t, new LinearLayout.LayoutParams(0, -2, 1));
             row.addView(Ui.head(this, it.target.length + " × " + it.target[0] + " " + e.unit(), 13, Ui.TEXT));
+            TextView info = Ui.head(this, "  ▶", 14, Ui.PINK);
+            row.addView(info);
+            final String id = e.id;
+            row.setOnClickListener(v -> HowTo.show(this, id));
             col.addView(row, Ui.lp(this, 6));
         }
     }

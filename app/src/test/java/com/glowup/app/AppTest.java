@@ -194,6 +194,46 @@ public class AppTest {
         assertTrue(Updater.newer("1.10.0", "1.9.3") && !Updater.newer("1.1.0", "1.1.0") && Updater.newer("v2.0", "1.9"));
     }
 
+    /** Every exercise's keyframes drawn on sheets (app/build/screens/demo_*.png), to check the poses by eye. */
+    @Test
+    public void demoSheets() throws Exception {
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (Plan.Ex e : Plan.ALL) {
+            ids.add(e.id);
+            assertTrue("every exercise has its demonstration: " + e.id, Demo.get(e.id).keys.size() >= 2);
+        }
+        ids.add("sit_rise");
+        ids.add("jog");
+        int cw = 300, ch = 260, perSheet = 8;
+        File dir = new File(System.getProperty("screens.out", "build/screens"));
+        dir.mkdirs();
+        for (int sheet = 0; sheet * perSheet < ids.size(); sheet++) {
+            int n = Math.min(perSheet, ids.size() - sheet * perSheet), cols = 5;
+            Bitmap b = Bitmap.createBitmap(cw * cols, (ch + 24) * n, Bitmap.Config.ARGB_8888);
+            b.eraseColor(0xFF140E1C);
+            Canvas c = new Canvas(b);
+            android.graphics.Paint tp = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            tp.setColor(0xFFFFC94D);
+            tp.setTextSize(18);
+            for (int r = 0; r < n; r++) {
+                String id = ids.get(sheet * perSheet + r);
+                Demo.Anim an = Demo.get(id);
+                c.drawText(id + "  (" + an.keys.size() + " keys)", 6, r * (ch + 24) + 18, tp);
+                for (int k = 0; k < Math.min(cols, an.keys.size()); k++) {
+                    c.save();
+                    c.translate(k * cw, r * (ch + 24) + 24);
+                    c.clipRect(0, 0, cw - 4, ch);
+                    c.drawColor(0xFF1A1324);
+                    DemoView.draw(c, an, an.keys.get(k), cw - 4, ch, 1.5f, true);
+                    c.restore();
+                }
+            }
+            try (FileOutputStream o = new FileOutputStream(new File(dir, "demo_" + sheet + ".png"))) {
+                b.compress(Bitmap.CompressFormat.PNG, 100, o);
+            }
+        }
+    }
+
     @Test
     public void screens() throws Exception {
         MainActivity a = Robolectric.buildActivity(MainActivity.class).setup().resume().get();
@@ -295,6 +335,31 @@ public class AppTest {
         for (State.Item it : w.items) System.arraycopy(it.target, 0, it.done, 0, it.target.length);
         wf.finish();
         shot(a, "24_workout_passed");
+
+        // the how-to page and the library (dialogs: drawn from their content views)
+        android.app.Dialog d = new android.app.Dialog(a);
+        for (String id : new String[]{"glute_bridge", "clamshell", "pushup"}) {
+            android.widget.LinearLayout c = Ui.vbox(a);
+            c.setBackgroundColor(Ui.BG);
+            c.setPadding(48, 48, 48, 48);
+            HowTo.fill(a, d, c, id);
+            android.widget.FrameLayout holder = new android.widget.FrameLayout(a);
+            holder.setBackgroundColor(Ui.BG);
+            holder.addView(c);
+            a.setScreen(holder, false);
+            shot(a, "30_howto_" + id);
+        }
+        HowTo.library(a);
+        android.app.Dialog lib = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        View lv = lib.getWindow().getDecorView();
+        lv.measure(View.MeasureSpec.makeMeasureSpec(W, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(H, View.MeasureSpec.EXACTLY));
+        lv.layout(0, 0, W, H);
+        Bitmap lb = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
+        lv.draw(new Canvas(lb));
+        try (FileOutputStream o = new FileOutputStream(new File(System.getProperty("screens.out", "build/screens"), "31_library.png"))) {
+            lb.compress(Bitmap.CompressFormat.PNG, 100, o);
+        }
+        lib.dismiss();
 
         List<State.Item> rec = Plan.build(s, today, Plan.RECOVERY, 1, false);
         assertTrue(rec.size() > 3);

@@ -61,6 +61,7 @@ final class WorkoutFlow {
         col.addView(Ui.text(a, e.cat >= 0 ? Science.CAT_LABEL[e.cat] : "WARM-UP / STRETCH", 13,
             e.cat >= 0 ? Ui.CAT_COLOR[e.cat] : Ui.DIM), Ui.lp(a, 18));
         col.addView(Ui.head(a, e.name.toUpperCase(Locale.US), 30, Ui.TEXT));
+        col.addView(HowTo.card(a, e.id, 210, true), Ui.lp(a, 10));
         col.addView(Ui.text(a, e.how, 15, Ui.TEXT), Ui.lp(a, 8));
         TextView why = Ui.text(a, "♀ " + e.why, 13, Ui.PINK);
         col.addView(why, Ui.lp(a, 8));

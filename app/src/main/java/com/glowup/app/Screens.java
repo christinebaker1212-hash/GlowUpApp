@@ -410,6 +410,7 @@ final class Screens {
                 new TestFlow(a, true).start();
             }).setNegativeButton("CANCEL", null).show()), Ui.lp(a, 10));
         col.addView(Ui.ghost(a, "CHECK FOR UPDATES", v -> Updater.check(a, true)), Ui.lp(a, 10));
+        col.addView(Ui.button(a, "EXERCISE LIBRARY: HOW TO DO EVERY MOVE", Ui.PURPLE, v -> HowTo.library(a)), 1, Ui.lp(a, 12));
         col.addView(Ui.text(a, "GLOW UP " + Updater.installed(a), 11, Ui.DIM), Ui.lp(a, 20));
     }
 
