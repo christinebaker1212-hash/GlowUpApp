@@ -35,15 +35,11 @@ final class TestFlow {
         LinearLayout col = a.scrollPage(false);
         col.setGravity(Gravity.CENTER_HORIZONTAL);
         col.addView(Ui.space(a, 50));
-        TextView logo = Ui.head(a, "GLOW UP", 56, Ui.PINK);
+        TextView logo = Ui.head(a, Flavor.APP, Flavor.MALE ? 46 : 56, Ui.PINK);
         col.addView(logo);
-        col.addView(Ui.text(a, "level up your body, one day at a time", 14, Ui.DIM));
+        col.addView(Ui.text(a, Flavor.TAGLINE, 14, Ui.DIM));
         LinearLayout c = Ui.card(a);
-        c.addView(Ui.text(a, "Every workout is a rated match. Beat it and your FITNESS RATING climbs from COUCH POTATO "
-            + "toward OLYMPIAN. Every set earns XP toward your next level.\n\n"
-            + "The plan builds curves: glutes and hips three days a week, a strong cinched waist, toned arms, graceful "
-            + "posture, balance and stamina, starting from wherever you are today, even if that's the couch.\n\n"
-            + "First: a 15-minute fitness test to find your starting point.", 15, Ui.TEXT));
+        c.addView(Ui.text(a, Flavor.WELCOME, 15, Ui.TEXT));
         col.addView(c, Ui.lp(a, 30));
         col.addView(Ui.button(a, "LET'S GO", Ui.PINK, v -> profile()), Ui.lp(a, 24));
     }
@@ -58,7 +54,7 @@ final class TestFlow {
         name.setOnClickListener(v -> a.askText("Your name", s.name, n -> { s.name = n; profile(); }));
         TextView birth = row(col, "BIRTH DATE", s.birth.isEmpty() ? "tap to set" : s.birth);
         birth.setOnClickListener(v -> a.askDate(s.birth, d -> { s.birth = d.toString(); profile(); }));
-        TextView height = row(col, "HEIGHT (optional)", s.heightCm <= 0 ? "tap to set" : Screens.height(s, s.heightCm));
+        TextView height = row(col, Flavor.MALE ? "HEIGHT (for your body fat)" : "HEIGHT (optional)", s.heightCm <= 0 ? "tap to set" : Screens.height(s, s.heightCm));
         height.setOnClickListener(v -> a.askNumber(s.imperial ? "Height in inches" : "Height in cm", s.imperial ? "e.g. 65" : "e.g. 165",
             0, val -> { s.heightCm = s.imperial ? val * 2.54 : val; profile(); }));
         TextView units = row(col, "UNITS", s.imperial ? "inches / pounds" : "cm / kg");
@@ -419,13 +415,13 @@ final class TestFlow {
         col.setGravity(Gravity.CENTER_HORIZONTAL);
         double overall = Science.overall(a.st.elo);
         int tier = Science.tier(overall);
-        col.addView(Ui.text(a, first ? "YOUR STARTING RANK" : "RETEST RESULTS", 13, Ui.DIM), Ui.lp(a, 20));
+        col.addView(Ui.text(a, first ? (Flavor.MALE ? "YOUR STARTING POWER LEVEL" : "YOUR STARTING RANK") : "RETEST RESULTS", 13, Ui.DIM), Ui.lp(a, 20));
         TextView rk = Ui.head(a, Science.rankName(overall), 34, Science.TIER_COLOR[tier]);
         rk.setGravity(Gravity.CENTER);
         rk.setAlpha(0);
         rk.animate().alpha(1).setDuration(800).start();
         col.addView(rk, Ui.lp(a, 4));
-        col.addView(Ui.head(a, "FITNESS RATING " + Ui.fmt(overall), 20, Ui.TEXT), Ui.lp(a, 4));
+        col.addView(Ui.head(a, Flavor.RATING + " " + Ui.fmt(overall), 20, Ui.TEXT), Ui.lp(a, 4));
         TextView stand = Ui.text(a, Science.standing(overall), 14, Ui.DIM);
         stand.setGravity(Gravity.CENTER);
         col.addView(stand, Ui.lp(a, 2));
@@ -470,8 +466,8 @@ final class TestFlow {
             r.setPadding(Ui.dp(a, 8), Ui.dp(a, 4), Ui.dp(a, 8), Ui.dp(a, 4));
             scale.addView(r, Ui.lp(a, 2));
         }
-        scale.addView(Ui.text(a, "Ratings compare you with women your age, using published fitness norms, and "
-            + "OLYMPIAN takes results Olympic athletes post. Most people never get there, and that's fine: the point is "
+        scale.addView(Ui.text(a, "Ratings compare you with " + Flavor.PEERS + " your age, using published fitness norms, and "
+            + Science.TIERS[7] + " takes results Olympic athletes post. Most people never get there, and that's fine: the point is "
             + "watching your own numbers climb.", 12, Ui.DIM), Ui.lp(a, 8));
         col.addView(scale, Ui.lp(a, 16));
         col.addView(Ui.text(a, "+150 XP", 18, Ui.PINK), Ui.lp(a, 14));

@@ -30,7 +30,33 @@ final class WorkoutFlow {
     void start() {
         startedAt = SystemClock.elapsedRealtime();
         a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        showSet();
+        if (Flavor.MALE && !Plan.RECOVERY.equals(type)) roundIntro(); else showSet();
+    }
+
+    /** TRAINING ARC: "ROUND 1... FIGHT!" before the first set. */
+    void roundIntro() {
+        LinearLayout col = a.scrollPage(false);
+        col.setGravity(Gravity.CENTER);
+        col.addView(Ui.space(a, 160));
+        int round = 1;
+        for (State.Workout x : a.st.workouts) if (!Plan.RECOVERY.equals(x.type)) round++;
+        TextView r = Ui.head(a, "ROUND " + round, 34, Ui.TEXT);
+        r.setGravity(Gravity.CENTER);
+        col.addView(r);
+        TextView f = Ui.head(a, "FIGHT!", 72, Ui.PINK);
+        f.setGravity(Gravity.CENTER);
+        f.setAlpha(0);
+        f.setScaleX(2.2f);
+        f.setScaleY(2.2f);
+        col.addView(f, Ui.lp(a, 6));
+        TextView sub = Ui.text(a, type + "  •  " + (w.tiny ? "TINY MODE" : Science.DIFF[w.diff]), 14, Ui.DIM);
+        sub.setGravity(Gravity.CENTER);
+        col.addView(sub, Ui.lp(a, 12));
+        h.postDelayed(() -> {
+            f.animate().alpha(1).scaleX(1).scaleY(1).setDuration(260).start();
+            Widgets.buzz(a, 120);
+        }, 700);
+        h.postDelayed(this::showSet, 1900);
     }
 
     int totalSets() {
@@ -63,7 +89,7 @@ final class WorkoutFlow {
         col.addView(Ui.head(a, e.name.toUpperCase(Locale.US), 30, Ui.TEXT));
         col.addView(HowTo.card(a, e.id, 210, true), Ui.lp(a, 10));
         col.addView(Ui.text(a, e.how, 15, Ui.TEXT), Ui.lp(a, 8));
-        TextView why = Ui.text(a, "♀ " + e.why, 13, Ui.PINK);
+        TextView why = Ui.text(a, (Flavor.MALE ? "⚡ " : "♀ ") + e.why, 13, Ui.PINK);
         col.addView(why, Ui.lp(a, 8));
 
         LinearLayout box = Ui.card(a);
@@ -177,7 +203,7 @@ final class WorkoutFlow {
         LinearLayout col = a.scrollPage(false);
         col.setGravity(Gravity.CENTER_HORIZONTAL);
         boolean recovery = Plan.RECOVERY.equals(type);
-        String title = r.completion >= 0.9 ? "WORKOUT PASSED!" : r.completion >= 0.5 ? "WORKOUT COMPLETE" : "TOUGH ONE";
+        String title = Flavor.passTitle(r.completion);
         int tc = r.completion >= 0.9 ? Ui.GOLD : r.completion >= 0.5 ? Ui.CYAN : Ui.ORANGE;
         col.addView(Ui.space(a, 20));
         TextView t = Ui.head(a, title, 40, tc);
@@ -188,8 +214,7 @@ final class WorkoutFlow {
         col.addView(t);
         col.addView(Ui.text(a, String.format(Locale.US, "%d%% complete  •  %d min", Math.round(r.completion * 100),
             Math.max(1, w.durSec / 60)), 14, Ui.DIM), Ui.lp(a, 4));
-        if (r.completion < 0.5) col.addView(Ui.text(a, "Showing up is the win. The plan adjusts to you, so tomorrow's "
-            + "targets fit better.", 14, Ui.TEXT), Ui.lp(a, 8));
+        if (r.completion < 0.5) col.addView(Ui.text(a, Flavor.TOUGH, 14, Ui.TEXT), Ui.lp(a, 8));
         Widgets.buzz(a, 120);
 
         TextView xpT = Ui.head(a, "+" + r.xp + " XP", 34, Ui.PINK);
@@ -242,7 +267,7 @@ final class WorkoutFlow {
                 card.addView(row, Ui.lp(a, 10));
             }
             double ob = Science.overall(r.before), oa = Science.overall(r.after);
-            card.addView(Ui.text(a, String.format(Locale.US, "Fitness Rating %s → %s (%s)", Ui.fmt(ob), Ui.fmt(oa), Ui.signed(oa - ob)), 14, Ui.TEXT), Ui.lp(a, 12));
+            card.addView(Ui.text(a, String.format(Locale.US, Flavor.RATING.charAt(0) + Flavor.RATING.substring(1).toLowerCase(Locale.US) + " %s → %s (%s)", Ui.fmt(ob), Ui.fmt(oa), Ui.signed(oa - ob)), 14, Ui.TEXT), Ui.lp(a, 12));
             col.addView(card, Ui.lp(a, 18));
         }
         for (String s : r.ach) {

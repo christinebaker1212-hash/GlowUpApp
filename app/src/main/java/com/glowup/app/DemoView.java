@@ -10,9 +10,11 @@ import android.view.View;
 
 /** Plays an exercise's demonstration on a loop, with the working muscles lit up and its cue words underneath. */
 final class DemoView extends View {
-    static final int BODY = 0xFFEDE3FA, FAR = 0xFF8E7FA6, HAIR = 0xFFFFB45E, HOT = 0xFFFF4FA3, HOT_FAR = 0xFFB0397A,
-        PROP = 0xFF3A2C4E, PROP_EDGE = 0xFF5E4A7A, FLOOR = 0xFF5E4A7A, MAT = 0xFF2E2042, INK = 0xFF2A1F38,
-        OUTLINE = 0xFF1A1324;
+    static final boolean M = Flavor.MALE;
+    static final int BODY = M ? 0xFFE3EAF7 : 0xFFEDE3FA, FAR = M ? 0xFF7D8BA6 : 0xFF8E7FA6,
+        HAIR = M ? 0xFF8A5A3C : 0xFFFFB45E, HOT = Ui.PINK, HOT_FAR = M ? 0xFFB3550F : 0xFFB0397A,
+        PROP = M ? 0xFF243049 : 0xFF3A2C4E, PROP_EDGE = M ? 0xFF3D4F73 : 0xFF5E4A7A, FLOOR = M ? 0xFF3D4F73 : 0xFF5E4A7A,
+        MAT = M ? 0xFF16203A : 0xFF2E2042, INK = 0xFF2A1F38, OUTLINE = M ? 0xFF0E1420 : 0xFF1A1324;
 
     final Demo.Anim anim;
     final int wantH;
@@ -52,6 +54,7 @@ final class DemoView extends View {
         for (double[] pr : a.props) {
             int type = (int) pr[0];
             if (type == Demo.WALL) continue;
+            if (type == Demo.DOOR) { grow(b, new double[]{pr[1] + 0.1, 0}, 0.02); continue; }
             grow(b, new double[]{pr[1], pr[3]}, 0.02);
             grow(b, new double[]{pr[2], pr[3]}, 0.02);
             if (type == Demo.COUCH) grow(b, new double[]{pr[1], pr[3] + 0.42}, 0.02);
@@ -185,6 +188,17 @@ final class DemoView extends View {
                     }
                     case Demo.COUNTER: box(x0, 0, x1, y, PROP); box(x0 - 0.03, y - 0.04, x1, y, PROP_EDGE); break;
                     case Demo.STEP: box(x0, 0, x1, y, PROP); box(x0, y - 0.025, x1, y, PROP_EDGE); break;
+                    case Demo.TABLE: {
+                        box(x0, y - 0.05, x1, y, PROP_EDGE);
+                        box(x0 + 0.03, 0, x0 + 0.08, y - 0.05, PROP);
+                        box(x1 - 0.08, 0, x1 - 0.03, y - 0.05, PROP);
+                        break;
+                    }
+                    case Demo.DOOR: { // a door frame seen from the side: the jamb she / he grips
+                        box(x0, 0, x0 + 0.08, 2.0, PROP);
+                        box(x0 - 0.01, 0, x0 + 0.01, 2.0, PROP_EDGE);
+                        break;
+                    }
                     case Demo.STAIRS: {
                         for (int i = 0; i < 5; i++) {
                             double sx0 = x0 + i * 0.26;
@@ -244,7 +258,8 @@ final class DemoView extends View {
             boolean core = on(Demo.CORE), upper = on(Demo.BACK) || on(Demo.SHOULDER);
             // glutes
             double[] g = Demo.add(Demo.add(j.hip, 0.06, j.belly + 180), 0.015, pose.t);
-            if (on(Demo.GLUTE) || on(Demo.HIPSIDE)) glowDot(g, 0.105, HOT); else dot(g, 0.105, BODY);
+            double gr = M ? 0.095 : 0.105;
+            if (on(Demo.GLUTE) || on(Demo.HIPSIDE)) glowDot(g, gr, HOT); else dot(g, gr, BODY);
             Path path = new Path();
             path.moveTo(X(j.hip[0]), Y(j.hip[1]));
             path.quadTo(X(mid[0]), Y(mid[1]), X(j.sh[0]), Y(j.sh[1]));
@@ -255,7 +270,7 @@ final class DemoView extends View {
                 p.setColor(0x33FF4FA3);
                 cv.drawPath(path, p);
             }
-            p.setStrokeWidth(L(0.22));
+            p.setStrokeWidth(L(M ? 0.25 : 0.22));
             p.setColor(core ? HOT : BODY);
             cv.drawPath(path, p);
             if (upper) { // upper back / shoulders band
@@ -263,8 +278,9 @@ final class DemoView extends View {
                 seg(u0, u1, 0.20, HOT);
             }
             // chest
-            double[] c = Demo.add(lerpPt(j.hip, j.sh, 0.72), 0.075, j.belly);
-            if (on(Demo.CHEST)) glowDot(c, 0.07, HOT); else dot(c, 0.07, core ? HOT : BODY);
+            double[] c = Demo.add(lerpPt(j.hip, j.sh, M ? 0.78 : 0.72), M ? 0.06 : 0.075, j.belly);
+            double cr = M ? 0.085 : 0.07;
+            if (on(Demo.CHEST)) glowDot(c, cr, HOT); else dot(c, cr, core ? HOT : BODY);
             if (on(Demo.HEART)) heart(Demo.add(lerpPt(j.hip, j.sh, 0.70), 0.02, j.belly), pose.t);
         }
 
@@ -291,9 +307,11 @@ final class DemoView extends View {
         void headSide(Demo.Pose pose, Demo.J j) {
             seg(j.sh, j.neck, 0.075, BODY);
             double hd = j.headDir;
-            double[] tail = Demo.add(j.head, 0.115, hd + 120);
-            seg(Demo.add(j.head, 0.06, hd + 100), tail, 0.06, HAIR);
-            dot(tail, 0.045, HAIR);
+            if (!M) {
+                double[] tail = Demo.add(j.head, 0.115, hd + 120);
+                seg(Demo.add(j.head, 0.06, hd + 100), tail, 0.06, HAIR);
+                dot(tail, 0.045, HAIR);
+            }
             dot(j.head, Demo.HEAD, HAIR);
             dot(Demo.add(j.head, 0.022, hd - 90), Demo.HEAD * 0.84, BODY);
             double[] eye = Demo.add(Demo.add(j.head, 0.055, hd - 90), 0.012, hd);
@@ -313,7 +331,8 @@ final class DemoView extends View {
         }
 
         void torsoFront(Demo.Pose pose, Demo.J j) {
-            double[] hn = Demo.add(j.hipN, 0.065, pose.t - 90), hf = Demo.add(j.hipF, 0.065, pose.t + 90);
+            double hw = M ? 0.035 : 0.065;
+            double[] hn = Demo.add(j.hipN, hw, pose.t - 90), hf = Demo.add(j.hipF, hw, pose.t + 90);
             Path path = new Path();
             path.moveTo(X(j.shN[0]), Y(j.shN[1]));
             path.lineTo(X(j.waistN[0]), Y(j.waistN[1]));
@@ -353,7 +372,7 @@ final class DemoView extends View {
         void headFront(Demo.Pose pose, Demo.J j) {
             seg(j.sh, j.neck, 0.08, BODY);
             double hd = j.headDir;
-            dot(Demo.add(j.head, 0.012, hd), Demo.HEAD * 1.1, HAIR);
+            dot(Demo.add(j.head, M ? 0.02 : 0.012, hd), Demo.HEAD * (M ? 1.0 : 1.1), HAIR);
             dot(Demo.add(j.head, 0.018, hd + 180), Demo.HEAD * 0.86, BODY);
             for (int s = -1; s <= 1; s += 2) {
                 double[] e = Demo.add(Demo.add(j.head, 0.035, hd + 90 * s), 0.0, hd);

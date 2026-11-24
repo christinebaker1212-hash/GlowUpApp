@@ -45,7 +45,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     final List<String> pendingNews = new ArrayList<>();
     private static final int REQ_EXPORT = 11, REQ_IMPORT = 12, REQ_PERMS = 13;
 
-    static final String[] TABS = {"HOME", "TRAIN", "STATS", "HEALTH", "ME"};
+    static final String[] TABS = {"HOME", "TRAIN", "STATS", Flavor.MALE ? "BODY" : "HEALTH", "ME"};
 
     @Override
     protected void onCreate(Bundle b) {
@@ -176,7 +176,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             case 0: showHome(); break;
             case 1: showTrain(); break;
             case 2: Screens.stats(this); break;
-            case 3: Screens.health(this); break;
+            case 3: if (Flavor.MALE) Body.show(this); else Screens.health(this); break;
             default: Screens.me(this); break;
         }
     }
@@ -212,7 +212,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         LinearLayout rank = Ui.card(this);
         LinearLayout rr = Ui.hbox(this);
         LinearLayout rl = Ui.vbox(this);
-        rl.addView(Ui.text(this, "FITNESS RATING", 12, Ui.DIM));
+        rl.addView(Ui.text(this, Flavor.RATING, 12, Ui.DIM));
         rl.addView(Ui.head(this, Science.rankName(overall), 22, Science.TIER_COLOR[tier]));
         rr.addView(rl, new LinearLayout.LayoutParams(0, -2, 1));
         TextView elo = Ui.head(this, Ui.fmt(overall), 40, Ui.TEXT);
@@ -257,6 +257,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             m.addView(Ui.button(this, "START", Ui.PINK, v -> showTrain()), Ui.lp(this, 12));
         }
         col.addView(m, Ui.lp(this, 16));
+        if (Flavor.MALE) col.addView(Body.fuelCard(this, this::showHome), Ui.lp(this, 16));
 
         // steps + streak
         LinearLayout two = Ui.hbox(this);
@@ -305,7 +306,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         // tip
         LinearLayout tip = Ui.card(this);
         tip.addView(Ui.text(this, "COACH'S TIP", 12, Ui.PURPLE));
-        tip.addView(Ui.text(this, Screens.TIPS[(int) (today.toEpochDay() % Screens.TIPS.length)], 14, Ui.TEXT), Ui.lp(this, 4));
+        String[] tips = Flavor.MALE ? Flavor.TIPS_M : Screens.TIPS;
+        tip.addView(Ui.text(this, tips[(int) (today.toEpochDay() % tips.length)], 14, Ui.TEXT), Ui.lp(this, 4));
         col.addView(tip, Ui.lp(this, 16));
     }
 
@@ -317,6 +319,11 @@ public class MainActivity extends Activity implements SensorEventListener {
             case Plan.CORE_BALANCE: return "A strong, cinched waist and steady balance.";
             case Plan.FULL_BODY: return "A bit of everything: the third glute day of the week.";
             case Plan.RECOVERY: return "Gentle stretching that undoes all that sitting, plus a walk for your steps.";
+            case Plan.PUSH_DAY: return "Chest, shoulders and triceps, then a conditioning finisher. Strict reps.";
+            case Plan.LEG_DAY: return "Legs are half your muscle: training them burns the most. Squats, power and balance.";
+            case Plan.PULL_DAY: return "Rows and upper back for the V-shape, then abs.";
+            case Plan.CONDITIONING: return "A fight-ready circuit: conditioning, legs, push-ups, core. Heart rate up, fat burning.";
+            case Plan.UPPER_DAY: return "Push and pull together: chest, back, shoulders and arms.";
             default: return "";
         }
     }

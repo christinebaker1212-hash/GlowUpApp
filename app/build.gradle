@@ -11,8 +11,29 @@ android {
         minSdk 26
         targetSdk 35
         // Raise versionName for a release (and add release_notes/<version>.md); versionCode follows it
-        versionName '1.2.0'
+        versionName '1.3.0'
         versionCode versionName.tokenize('.').collect { it as int }.with { it[0] * 10000 + it[1] * 100 + it[2] }
+    }
+
+    buildFeatures { buildConfig true }
+
+    // Two apps from one code: GLOW UP (hers) and TRAINING ARC (his). Flavor.java holds what differs.
+    flavorDimensions 'who'
+    productFlavors {
+        glow {
+            dimension 'who'
+            applicationId 'com.glowup.app'
+            buildConfigField 'boolean', 'MALE', 'false'
+            buildConfigField 'String', 'APK_PREFIX', '"GlowUp-"'
+            resValue 'string', 'app_name', 'GLOW UP'
+        }
+        arc {
+            dimension 'who'
+            applicationId 'com.trainingarc.app'
+            buildConfigField 'boolean', 'MALE', 'true'
+            buildConfigField 'String', 'APK_PREFIX', '"TrainingArc-"'
+            resValue 'string', 'app_name', 'TRAINING ARC'
+        }
     }
 
     signingConfigs {
@@ -51,7 +72,7 @@ android {
             all {
                 systemProperty 'robolectric.dependency.repo.url', 'https://maven-central.storage-download.googleapis.com/maven2'
                 systemProperty 'robolectric.graphicsMode', 'NATIVE'
-                systemProperty 'screens.out', file("$buildDir/screens").absolutePath
+                systemProperty 'screens.out', file("$buildDir/screens/" + it.name.replace('test', '').replace('ReleaseUnitTest', '').replace('DebugUnitTest', '').toLowerCase()).absolutePath
                 testLogging { showStandardStreams = true }
             }
         }

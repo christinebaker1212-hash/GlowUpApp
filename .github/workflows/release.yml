@@ -1,5 +1,6 @@
-# Builds, tests, signs and publishes the APK as a GitHub release when versionName in app/build.gradle is raised.
-# The app's updater reads releases/latest. Needs the GLOWUP_KEY_PASSWORD secret (the signing key's password).
+# Builds, tests, signs and publishes both apps (GLOW UP and TRAINING ARC) as one GitHub release when versionName in
+# app/build.gradle is raised. Each app's updater reads releases/latest and takes its own APK and notes section.
+# Needs the GLOWUP_KEY_PASSWORD secret (the signing key's password).
 name: Release
 on:
   push:
@@ -26,6 +27,7 @@ jobs:
             echo "v$VER is already released: nothing to do"; echo "skip=1" >> "$GITHUB_OUTPUT"
           fi
           test -f "release_notes/$VER.md" || { echo "::error::release_notes/$VER.md is missing"; exit 1; }
+          test -f "release_notes/arc/$VER.md" || { echo "::error::release_notes/arc/$VER.md is missing"; exit 1; }
       - name: Signing key
         if: steps.v.outputs.skip != '1'
         run: |
@@ -40,17 +42,21 @@ jobs:
           java-version: 17
       - name: Build and test
         if: steps.v.outputs.skip != '1'
-        run: ./gradlew --no-daemon testReleaseUnitTest assembleRelease
+        run: ./gradlew --no-daemon testGlowReleaseUnitTest testArcReleaseUnitTest assembleGlowRelease assembleArcRelease
       - name: Check the signature
         if: steps.v.outputs.skip != '1'
         run: |
           BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
-          "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk \
-            | grep -q "SHA-256 digest: bc8b1baa558988e3261b9b2c0355ad57541676383521a79f43a8f1623696386d" \
-            || { echo "::error::The APK isn't signed with the GLOW UP key: phones would refuse the update"; exit 1; }
+          for apk in app/build/outputs/apk/glow/release/app-glow-release.apk app/build/outputs/apk/arc/release/app-arc-release.apk; do
+            "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs "$apk" \
+              | grep -q "SHA-256 digest: bc8b1baa558988e3261b9b2c0355ad57541676383521a79f43a8f1623696386d" \
+              || { echo "::error::$apk isn't signed with the app key: phones would refuse the update"; exit 1; }
+          done
       - name: Publish
         if: steps.v.outputs.skip != '1'
         run: |
           VER=${{ steps.v.outputs.ver }}
-          cp app/build/outputs/apk/release/app-release.apk "GlowUp-$VER.apk"
-          gh release create "v$VER" "GlowUp-$VER.apk" --title "GLOW UP $VER" --notes-file "release_notes/$VER.md" --latest
+          cp app/build/outputs/apk/glow/release/app-glow-release.apk "GlowUp-$VER.apk"
+          cp app/build/outputs/apk/arc/release/app-arc-release.apk "TrainingArc-$VER.apk"
+          { echo "## GLOW UP"; cat "release_notes/$VER.md"; echo; echo "## TRAINING ARC"; cat "release_notes/arc/$VER.md"; } > notes.md
+          gh release create "v$VER" "GlowUp-$VER.apk" "TrainingArc-$VER.apk" --title "GLOW UP & TRAINING ARC $VER" --notes-file notes.md --latest

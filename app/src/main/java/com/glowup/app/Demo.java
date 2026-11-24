@@ -15,13 +15,13 @@ final class Demo {
 
     // body (metres)
     static final double TOR = 0.50, NECK = 0.07, HEAD = 0.105, UA = 0.29, FA = 0.27, TH = 0.44, SH = 0.43,
-        FOOT = 0.16, SHW = 0.17, HPW = 0.10, AH = 0.08;
+        FOOT = 0.16, SHW = Flavor.MALE ? 0.205 : 0.17, HPW = 0.10, AH = 0.08, WAIST = Flavor.MALE ? 0.15 : 0.12;
     static final int SIDE = 0, FRONT = 1;
     // what lights up
     static final int GLUTE = 1, THIGH = 2, SHIN = 4, CORE = 8, CHEST = 16, ARM = 32, BACK = 64, HIPSIDE = 128,
         SHOULDER = 256, INNER = 512, HEART = 1024;
     // props: {type, x0, x1, y}
-    static final int WALL = 1, CHAIR = 2, COUCH = 3, COUNTER = 4, STEP = 5, MAT = 6, STAIRS = 7;
+    static final int WALL = 1, CHAIR = 2, COUCH = 3, COUNTER = 4, STEP = 5, MAT = 6, STAIRS = 7, TABLE = 8, DOOR = 9;
 
     static final class Pose {
         double x, y, t = 180, h, bend;
@@ -104,8 +104,8 @@ final class Demo {
         j.hipN = add(j.hip, hw, p.t - 90);
         j.hipF = add(j.hip, hw, p.t + 90);
         j.waist = add(j.hip, TOR * p.ts * 0.45, p.t);
-        j.waistN = add(j.waist, view == FRONT ? 0.12 : 0, p.t - 90);
-        j.waistF = add(j.waist, view == FRONT ? 0.12 : 0, p.t + 90);
+        j.waistN = add(j.waist, view == FRONT ? WAIST : 0, p.t - 90);
+        j.waistF = add(j.waist, view == FRONT ? WAIST : 0, p.t + 90);
         j.headDir = p.t + p.h;
         j.neck = add(j.sh, NECK, j.headDir);
         j.head = add(j.neck, HEAD, j.headDir);
@@ -806,6 +806,75 @@ final class Demo {
                     .label("KNEES UP HIGH").move(0.25).hold(0)
                     .next().at(0, STAND + 0.03).footTo(0, 0.0, AH + 0.04, 1).foot(0, 60).foot(1, Double.NaN).leg(1, 100, 0).arm(1, -40, 60).arm(0, 60, 150)
                     .label("LIGHT ON YOUR FEET").hold(0).add();
+                return a.done();
+            }
+
+            // ===== the moves his arc adds =====
+            case "door_row": {
+                A a = new A(SIDE, BACK | ARM).prop(DOOR, 0.46, 0.46, 0);
+                a.k().line(0.20, AH, 203).handsTo(0.44, 1.12, 1).label("GRIP THE FRAME, LEAN BACK, ARMS STRAIGHT").move(1.1).hold(0.3)
+                    .next().line(0.20, AH, 190).handsTo(0.44, 1.12, 1).label("PULL YOUR CHEST TO THE FRAME, SQUEEZE").hold(0.5).add();
+                return a.done();
+            }
+            case "table_row": {
+                A a = new A(SIDE, BACK | ARM).prop(TABLE, -0.80, 0.05, 0.72);
+                a.k().line(0.90, 0.06, -93).foot(0, 180).foot(1, 180).handsTo(-0.47, 0.70, -1)
+                    .label("UNDER A STURDY TABLE, ARMS STRAIGHT").move(1.1).hold(0.3)
+                    .next().line(0.90, 0.06, -110).foot(0, 180).foot(1, 180).handsTo(-0.40, 0.70, -1)
+                    .label("PULL YOUR CHEST UP TO THE TABLE").hold(0.5).add();
+                return a.done();
+            }
+            case "diamond_pushup": {
+                A a = new A(SIDE, ARM | CHEST).prop(MAT, -1.2, 0.9, 0);
+                a.k().line(-0.86, 0.06, 111).foot(0, 160).foot(1, 160).handsTo(0.40, 0.04, 1)
+                    .label("HANDS TOGETHER UNDER YOUR CHEST").move(1.2).hold(0.3)
+                    .next().line(-0.86, 0.06, 97).foot(0, 160).foot(1, 160).handsTo(0.40, 0.04, 1)
+                    .label("ELBOWS BRUSH YOUR SIDES").hold(0.3).add();
+                return a.done();
+            }
+            case "pike_pushup": {
+                A a = new A(SIDE, SHOULDER | ARM).prop(MAT, -0.9, 0.9, 0);
+                a.k().t(50).sh(0.38, 0.56).h(-10).feetTo(-0.55, 0.10).foot(0, 70).foot(1, 70).handsTo(0.46, 0.04, 1)
+                    .label("HIPS HIGH, AN UPSIDE-DOWN V").move(1.2).hold(0.3)
+                    .next().t(38).sh(0.42, 0.30).h(-10).feetTo(-0.55, 0.10).foot(0, 70).foot(1, 70).handsTo(0.46, 0.04, 1)
+                    .label("LOWER YOUR HEAD BETWEEN YOUR HANDS").hold(0.3).add();
+                return a.done();
+            }
+            case "shadow_box": {
+                A a = new A(SIDE, HEART | SHOULDER);
+                B b = a.k().at(0, STAND - 0.05).t(176).footTo(0, 0.22, AH, 1).footTo(1, -0.20, AH, 1).foot(1, 60)
+                    .handsTo(0.16, 1.40, 1).label("HANDS UP BY YOUR CHIN").move(0.25).hold(0.1);
+                b = b.next().arm(0, 92, 90).label("JAB").hold(0.05);
+                b = b.next().handsTo(0.16, 1.40, 1).label("BACK TO GUARD").hold(0.08);
+                b.next().arm(1, 94, 90).handTo(0, 0.16, 1.40, 1).label("CROSS").hold(0.05).add();
+                return a.done();
+            }
+            case "mountain_climber": {
+                A a = new A(SIDE, HEART | CORE).prop(MAT, -1.2, 0.9, 0);
+                a.k().line(-0.86, 0.06, 111).foot(0, 160).foot(1, 160).handsTo(0.44, 0.04, 1)
+                    .footTo(0, 0.02, 0.14, -1).label("HIGH PLANK, KNEE TO CHEST").move(0.3).hold(0)
+                    .next().line(-0.86, 0.06, 111).foot(0, 160).foot(1, 160).handsTo(0.44, 0.04, 1)
+                    .footTo(1, 0.02, 0.14, -1).label("SWITCH FAST, HIPS DOWN").hold(0).add();
+                return a.done();
+            }
+            case "burpee": {
+                A a = new A(SIDE, HEART | THIGH).prop(MAT, -1.2, 0.9, 0);
+                a.k().feetTo(0.02, AH).label("STAND").move(0.5).hold(0.1)
+                    .next().at(-0.18, 0.50).t(120).h(20).feetTo(0.02, AH).handsTo(0.36, 0.04, 1).label("SQUAT, HANDS DOWN").hold(0.05)
+                    .next().line(-0.86, 0.06, 111).h(0).foot(0, 160).foot(1, 160).handsTo(0.44, 0.04, 1).label("FEET BACK TO A PLANK").hold(0.2)
+                    .next().at(-0.18, 0.50).t(120).h(20).feetTo(0.02, AH).foot(0, Double.NaN).foot(1, Double.NaN).handsTo(0.36, 0.04, 1)
+                    .label("FEET BACK IN").hold(0.05)
+                    .next().at(0, STAND + 0.06).t(180).h(0).feetTo(0.02, AH + 0.06).foot(0, 40).foot(1, 40).arms(178, 180)
+                    .label("STAND AND REACH UP").hold(0.2).add();
+                return a.done();
+            }
+            case "jump_squat": {
+                A a = new A(SIDE, GLUTE | THIGH);
+                a.k().at(-0.28, 0.52).t(142).h(28).feetTo(0.08, AH).arms(-30, -20).label("SQUAT DOWN").move(0.5).hold(0.15)
+                    .next().at(0.04, STAND + 0.16).t(178).h(0).feetTo(0.06, AH + 0.16).foot(0, 40).foot(1, 40).arms(170, 175)
+                    .label("JUMP STRAIGHT UP").hold(0.05)
+                    .next().at(-0.28, 0.52).t(142).h(28).feetTo(0.08, AH).foot(0, Double.NaN).foot(1, Double.NaN).arms(-30, -20)
+                    .label("LAND SOFTLY, INTO THE NEXT ONE").hold(0.15).add();
                 return a.done();
             }
 

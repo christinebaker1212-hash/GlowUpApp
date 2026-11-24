@@ -55,7 +55,7 @@ public final class Reminder extends BroadcastReceiver {
                 "10 minutes. That's all today asks. " + type + " is ready.",
                 "XP is waiting. " + type + " today.",
             };
-            title = "GLOW UP";
+            title = Flavor.APP;
             body = lines[(int) (LocalDate.now().toEpochDay() % lines.length)];
         }
         NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);

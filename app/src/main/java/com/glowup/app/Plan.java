@@ -34,7 +34,9 @@ final class Plan {
         Ex(String id, String name, int cat, String slot, String test, double factor, int kind, boolean side,
            int fixed, String how, String why) {
             this.id = id; this.name = name; this.cat = cat; this.slot = slot; this.test = test;
-            this.factor = factor; this.kind = kind; this.side = side; this.fixed = fixed; this.how = how; this.why = why;
+            this.factor = factor; this.kind = kind; this.side = side; this.fixed = fixed; this.how = how;
+            String m = Flavor.MALE ? FlavorText.WHY_M.get(id) : null; // his app's reasons
+            this.why = m != null ? m : why;
         }
 
         String unit() {
@@ -202,6 +204,32 @@ final class Plan {
             "Run in place, bringing your knees up high. Light on your feet.",
             "High-intensity cardio for when you're ready."),
 
+        // ---- the moves his arc adds (in the library for both) ----
+        new Ex("door_row", "Doorway Row", U, "ROW", PU, 0.25, REPS, false,
+            "Stand in a doorway and grip both sides of the frame at chest height. Lean back with straight arms, body in one line. Pull your chest to the frame by squeezing your shoulder blades, then lower slowly.",
+            "Builds the upper back for better posture."),
+        new Ex("table_row", "Table Row", U, "ROW", PU, 0.8, REPS, false,
+            "Lie under a sturdy table and grip its edge, arms straight, heels on the floor, body straight. Pull your chest up to the table, squeeze, and lower slowly. Test the table first: it must not tip.",
+            "A pull-up's little sibling: the back muscles that balance all those push-ups."),
+        new Ex("diamond_pushup", "Diamond Push-Up", U, "PUSH2", PU, 1.4, REPS, false,
+            "A push-up with your hands close together under your chest, thumbs and index fingers making a diamond. Elbows brush your sides. Use your knees if you need to.",
+            "Triceps and inner chest."),
+        new Ex("pike_pushup", "Pike Push-Up", U, "PUSH2", PU, 1.6, REPS, false,
+            "Start in a push-up, walk your feet in and lift your hips high into an upside-down V. Bend your elbows to lower the top of your head toward the floor between your hands, then press back up.",
+            "Shoulder strength without weights."),
+        new Ex("shadow_box", "Shadowboxing", C, "HIIT", CT, 1.0, HOLD, false,
+            "Fighting stance: feet shoulder-width, one foot ahead, hands up by your chin. Throw straight punches, left and right, light on your feet. Bring each hand back to your chin after every punch.",
+            "Cardio that works the shoulders and core, and it's fun."),
+        new Ex("mountain_climber", "Mountain Climbers", C, "HIIT", CT, 1.6, HOLD, false,
+            "High plank, hands under shoulders. Drive one knee toward your chest, switch fast, like running in place. Keep your hips down.",
+            "Cardio and core in one."),
+        new Ex("burpee", "Burpee", C, "HIIT", CT, 3.0, HOLD, false,
+            "Squat down, hands on the floor, step or jump your feet back into a plank, bring them back in, stand and reach up (add a small jump when you're ready). Go at a pace you can keep.",
+            "The classic full-body conditioning move."),
+        new Ex("jump_squat", "Jump Squat", G, "PLYO", CH, 1.4, REPS, false,
+            "Squat down, then jump straight up. Land softly on the balls of your feet, knees bent, and flow into the next squat.",
+            "Explosive leg power."),
+
         // ---- Mobility (warm-up / cool-down; unscored) ----
         new Ex("cat_cow", "Cat-Cow", M, "", "", 1, REPS, false, 8,
             "On hands and knees, round your back up like a cat, then let it sink and look up. Slow, with your breath.",
@@ -237,7 +265,12 @@ final class Plan {
     // ---- The week ----
     static final String GLUTES_HIPS = "GLUTES & HIPS", UPPER_POSTURE = "ARMS & POSTURE", RECOVERY = "RECOVERY FLOW",
         GLUTES_LEGS = "GLUTES & LEGS", CORE_BALANCE = "CORE & BALANCE", FULL_BODY = "FULL BODY", REST = "REST DAY";
-    static final String[] WEEK = {GLUTES_HIPS, UPPER_POSTURE, RECOVERY, GLUTES_LEGS, CORE_BALANCE, FULL_BODY, REST};
+    // his week (TRAINING ARC): push, legs, recovery, pull, conditioning, upper, rest
+    static final String PUSH_DAY = "CHEST & SHOULDERS", LEG_DAY = "LEGS & POWER", PULL_DAY = "BACK & CORE",
+        CONDITIONING = "FIGHT CONDITIONING", UPPER_DAY = "UPPER BODY";
+    static final String[] WEEK = Flavor.MALE
+        ? new String[]{PUSH_DAY, LEG_DAY, RECOVERY, PULL_DAY, CONDITIONING, UPPER_DAY, REST}
+        : new String[]{GLUTES_HIPS, UPPER_POSTURE, RECOVERY, GLUTES_LEGS, CORE_BALANCE, FULL_BODY, REST};
 
     static String typeFor(State s, LocalDate d) {
         LocalDate start;
@@ -259,11 +292,16 @@ final class Plan {
             case CORE_BALANCE: return new String[]{"cat_cow", "arm_circles", "PLANK", "CORE_DYN", "SIDE", "BALANCE", "CARDIO", "childs_pose"};
             case FULL_BODY: return new String[]{"hip_circles", "arm_circles", "SQUAT", "PUSH", "BRIDGE", "CORE_DYN", "CARDIO", "figure4"};
             case RECOVERY: return new String[]{"cat_cow", "hip_circles", "lunge_reach", "hip_flexor", "figure4", "butterfly", "childs_pose"};
+            case PUSH_DAY: return new String[]{"arm_circles", "cat_cow", "PUSH", "PUSH2", "DIP", "PLANK", "HIIT", "childs_pose"};
+            case LEG_DAY: return new String[]{"hip_circles", "lunge_reach", "SQUAT", "PLYO", "LEGS", "BRIDGE", "BALANCE", "hip_flexor"};
+            case PULL_DAY: return new String[]{"arm_circles", "cat_cow", "ROW", "POSTURE", "CORE_DYN", "SIDE", "PLANK", "childs_pose"};
+            case CONDITIONING: return new String[]{"hip_circles", "arm_circles", "HIIT", "SQUAT", "PUSH", "CORE_DYN", "CARDIO", "figure4"};
+            case UPPER_DAY: return new String[]{"arm_circles", "cat_cow", "PUSH", "ROW", "PUSH2", "DIP", "CORE_DYN", "childs_pose"};
             default: return new String[0];
         }
     }
 
-    private static final String[] PROGRESSIONS = {"PUSH", "DIP", "BRIDGE", "SQUAT", "PLANK", "SIDE", "BALANCE"};
+    private static final String[] PROGRESSIONS = {"PUSH", "DIP", "BRIDGE", "SQUAT", "PLANK", "SIDE", "BALANCE", "ROW"};
 
     /** How many reps / seconds of this exercise she could do in one go right now. */
     static double maxFor(Ex e, State s, double age) {
@@ -287,11 +325,26 @@ final class Plan {
         List<Ex> ok = new ArrayList<>();
         for (Ex e : list) {
             double need = e.kind == HOLD ? (e.cat == Science.CARDIO ? 60 : 15) : 5;
-            if (maxFor(e, s, age) >= need) ok.add(e);
+            if (maxFor(e, s, age) >= need && s.elo[e.cat] >= minRating(e.id)) ok.add(e);
         }
+        if (ok.isEmpty() && "PLYO".equals(slot)) return ex("sumo_squat"); // not jumping yet: a strong squat instead
         if (ok.isEmpty()) ok.add(list.get(0));
         int h = Math.abs(slot.hashCode() % 7);
         return ok.get((int) ((d.toEpochDay() / 7 * 3 + d.toEpochDay() + h) % ok.size()));
+    }
+
+    /**
+     * Jumping and high-impact moves wait until the rating says the joints are ready (they land at full body weight,
+     * and more for a big frame): until then the slot's gentler moves take their place.
+     */
+    static double minRating(String id) {
+        switch (id) {
+            case "jump_squat": return 900;
+            case "burpee": return 1000;
+            case "mountain_climber": return 700;
+            case "high_knees": return 800;
+            default: return 0;
+        }
     }
 
     static int setsFor(double rating, boolean tiny) {

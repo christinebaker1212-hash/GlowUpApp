@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- a lightning bolt with an aura -->
+    <path android:fillColor="#33FF8A1F" android:pathData="M54,22a32,32 0 1,0 0.1,0z" />
+    <path android:fillColor="#FF8A1F" android:pathData="M60,26l-20,32h12l-6,24 22,-34h-12z" />
+    <path android:fillColor="#FFD54A" android:pathData="M58,32l-13,22h9l-3,14 13,-20h-9z" />
+</vector>

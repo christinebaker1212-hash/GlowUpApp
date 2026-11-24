@@ -61,7 +61,7 @@ final class Screens {
         col.addView(Ui.head(a, "STATS", 30, Ui.TEXT));
 
         LinearLayout ch = Ui.card(a);
-        ch.addView(Ui.text(a, "FITNESS RATING OVER TIME", 12, Ui.DIM));
+        ch.addView(Ui.text(a, Flavor.RATING + " OVER TIME", 12, Ui.DIM));
         Ui.LineChart lc = new Ui.LineChart(a, 200);
         for (int c = 0; c < 5; c++) {
             Ui.LineChart.Series se = new Ui.LineChart.Series();
@@ -293,7 +293,7 @@ final class Screens {
         }
         mc.addView(Ui.button(a, "LOG MEASUREMENTS", Ui.PURPLE, v -> logMeasure(a, new State.Measure(), 0)), Ui.lp(a, 12));
         col.addView(mc, Ui.lp(a, 16));
-        col.addView(Ui.text(a, "GLOW UP is a fitness game, not medical advice. Talk to your doctor about your health, "
+        col.addView(Ui.text(a, Flavor.APP + " is a fitness game, not medical advice. Talk to your doctor about your health, "
             + "especially before big changes.", 11, Ui.DIM), Ui.lp(a, 14));
     }
 
@@ -314,19 +314,20 @@ final class Screens {
         col.addView(c, Ui.lp(a, 10));
     }
 
-    static final String[] M_NAMES = {"Waist (narrowest point)", "Hips (fullest part of the glutes)", "Bust / chest", "Thigh (fullest part)", "Weight"};
+    static final String[] M_NAMES = Flavor.MALE
+        ? new String[]{"Waist (at your belly button, relaxed)", "Neck (just below the Adam's apple)", "Chest (across the nipples)", "Upper arm (flexed, biggest point)", "Weight"}
+        : new String[]{"Waist (narrowest point)", "Hips (fullest part of the glutes)", "Bust / chest", "Thigh (fullest part)", "Weight"};
 
     static void logMeasure(MainActivity a, State.Measure m, int step) {
         State s = a.st;
         if (step >= M_NAMES.length) {
             m.date = LocalDate.now().toString();
-            if (m.waist + m.hip + m.bust + m.thigh + m.weight <= 0) return;
-            if (!s.measures.isEmpty() && s.measures.get(s.measures.size() - 1).date.equals(m.date)) s.measures.remove(s.measures.size() - 1);
-            s.measures.add(m);
+            if (m.waist + m.hip + m.bust + m.thigh + m.weight + m.neck + m.arm <= 0) return;
+            addMeasure(s, m);
             s.xp += 20;
             Logic.checkAch(a, s);
             Store.save(a, s);
-            health(a);
+            if (Flavor.MALE) Body.show(a); else health(a);
             return;
         }
         boolean weight = step == 4;
@@ -348,14 +349,28 @@ final class Screens {
                 double metric = weight ? (s.imperial ? v * 0.45359237 : v) : (s.imperial ? v * 2.54 : v);
                 switch (step) {
                     case 0: m.waist = metric; break;
-                    case 1: m.hip = metric; break;
+                    case 1: if (Flavor.MALE) m.neck = metric; else m.hip = metric; break;
                     case 2: m.bust = metric; break;
-                    case 3: m.thigh = metric; break;
+                    case 3: if (Flavor.MALE) m.arm = metric; else m.thigh = metric; break;
                     default: m.weight = metric; break;
                 }
             }
             logMeasure(a, m, step + 1);
         }).setNegativeButton("CANCEL", null).show();
+    }
+
+    /** A day's measurements: a second entry the same day fills in / replaces only what it has. */
+    static void addMeasure(State s, State.Measure m) {
+        State.Measure last = s.measures.isEmpty() ? null : s.measures.get(s.measures.size() - 1);
+        if (last != null && last.date.equals(m.date)) {
+            if (m.waist > 0) last.waist = m.waist;
+            if (m.hip > 0) last.hip = m.hip;
+            if (m.bust > 0) last.bust = m.bust;
+            if (m.thigh > 0) last.thigh = m.thigh;
+            if (m.weight > 0) last.weight = m.weight;
+            if (m.neck > 0) last.neck = m.neck;
+            if (m.arm > 0) last.arm = m.arm;
+        } else s.measures.add(m);
     }
 
     // ---------------- ME ----------------
@@ -411,7 +426,7 @@ final class Screens {
             }).setNegativeButton("CANCEL", null).show()), Ui.lp(a, 10));
         col.addView(Ui.ghost(a, "CHECK FOR UPDATES", v -> Updater.check(a, true)), Ui.lp(a, 10));
         col.addView(Ui.button(a, "EXERCISE LIBRARY: HOW TO DO EVERY MOVE", Ui.PURPLE, v -> HowTo.library(a)), 1, Ui.lp(a, 12));
-        col.addView(Ui.text(a, "GLOW UP " + Updater.installed(a), 11, Ui.DIM), Ui.lp(a, 20));
+        col.addView(Ui.text(a, Flavor.APP + " " + Updater.installed(a), 11, Ui.DIM), Ui.lp(a, 20));
     }
 
     static void save(MainActivity a) {
@@ -430,10 +445,10 @@ final class Screens {
     }
 
     static final String SCIENCE =
-        "YOUR FITNESS RATING works like a chess Elo, on a scale built from published fitness norms for women. Each test "
-            + "result is placed by where it falls among women your age: 400 is the 10th percentile, 800 the 30th, 1200 the "
-            + "median, 1600 the 75th, 2000 the 90th, 2400 the top 1%. 2600 is national-elite and 2800 is Olympic: OLYMPIAN "
-            + "takes the results Olympic athletes post, like a 12-minute run of about 3.9 km (2.4 miles). 40 ranks, 80 "
+        "YOUR " + Flavor.RATING + " works like a chess Elo, on a scale built from published fitness norms for " + Flavor.PEERS + ". Each test "
+            + "result is placed by where it falls among " + Flavor.PEERS + " your age: 400 is the 10th percentile, 800 the 30th, 1200 the "
+            + "median, 1600 the 75th, 2000 the 90th, 2400 the top 1%. 2600 is national-elite and 2800 is Olympic: " + Science.TIERS[7] + " "
+            + "takes the results Olympic athletes post, like a 12-minute run of about " + (Flavor.MALE ? "4.1 km (2.5 miles)" : "3.9 km (2.4 miles)") + ". 40 ranks, 80 "
             + "points apart. Results are age-graded first, the way masters athletes are scored, so the same rating means "
             + "the same thing at 32 or 62.\n\n"
             + "SOME TESTS HAVE A CEILING. The 2-minute march can't tell a fit person from an athlete, so it rates STAMINA "

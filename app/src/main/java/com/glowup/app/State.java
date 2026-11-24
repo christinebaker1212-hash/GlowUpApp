@@ -31,6 +31,8 @@ final class State {
     List<Snap> snaps = new ArrayList<>();
     Set<String> ach = new HashSet<>();
     Map<String, Integer> stepXp = new HashMap<>();
+    Map<String, Integer> fuel = new HashMap<>(); // his FUEL missions: date -> bits done
+    double bfGoal = 12;                          // his GOD FORM body fat goal (%)
 
     static final class Test {
         String date;
@@ -57,7 +59,7 @@ final class State {
 
     static final class Measure { // always metric inside
         String date;
-        double waist, hip, bust, thigh, weight;
+        double waist, hip, bust, thigh, weight, neck, arm; // (neck, arm: his body-fat estimate and arms)
     }
 
     static final class Snap {
@@ -118,7 +120,7 @@ final class State {
 
     JSONObject toJson() throws JSONException {
         JSONObject o = new JSONObject();
-        o.put("app", "GLOW UP");
+        o.put("app", Flavor.APP);
         o.put("schema", SCHEMA);
         o.put("name", name).put("birth", birth).put("start", start).put("heightCm", heightCm);
         o.put("imperial", imperial).put("remind", remind).put("stepsOn", stepsOn).put("parqFlag", parqFlag);
@@ -156,7 +158,7 @@ final class State {
         JSONArray ma = new JSONArray();
         for (Measure m : measures) {
             ma.put(new JSONObject().put("date", m.date).put("waist", m.waist).put("hip", m.hip).put("bust", m.bust)
-                .put("thigh", m.thigh).put("weight", m.weight));
+                .put("thigh", m.thigh).put("weight", m.weight).put("neck", m.neck).put("arm", m.arm));
         }
         o.put("measures", ma);
         JSONArray sa = new JSONArray();
@@ -166,6 +168,9 @@ final class State {
         JSONObject sx = new JSONObject();
         for (Map.Entry<String, Integer> e : stepXp.entrySet()) sx.put(e.getKey(), e.getValue());
         o.put("stepXp", sx);
+        JSONObject fu = new JSONObject();
+        for (Map.Entry<String, Integer> e : fuel.entrySet()) fu.put(e.getKey(), e.getValue());
+        o.put("fuel", fu).put("bfGoal", bfGoal);
         return o;
     }
 
@@ -248,6 +253,8 @@ final class State {
             m.hip = j.optDouble("hip", 0);
             m.bust = j.optDouble("bust", 0);
             m.thigh = j.optDouble("thigh", 0);
+            m.neck = j.optDouble("neck", 0);
+            m.arm = j.optDouble("arm", 0);
             m.weight = j.optDouble("weight", 0);
             s.measures.add(m);
         }
@@ -267,6 +274,12 @@ final class State {
             String key = k.next();
             s.stepXp.put(key, sx.optInt(key));
         }
+        JSONObject fu = o.optJSONObject("fuel");
+        if (fu != null) for (Iterator<String> k = fu.keys(); k.hasNext(); ) {
+            String key = k.next();
+            s.fuel.put(key, fu.optInt(key));
+        }
+        s.bfGoal = o.optDouble("bfGoal", 12);
         return s;
     }
 }

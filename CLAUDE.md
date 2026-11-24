@@ -1,6 +1,11 @@
 # GLOW UP: notes for Claude
 
 The user's daily workout game for Android (plain Java, no third-party libraries; README.md for the code map).
+Two apps from one code (product flavors, app/build.gradle): **GLOW UP** (`glow`, hers, com.glowup.app) and
+**TRAINING ARC** (`arc`, her boyfriend's, com.trainingarc.app, since 1.3.0). Flavor.java / FlavorText.java hold what
+differs (BuildConfig.MALE): names, ranks (ROOKIE ... GOD TIER), stat labels, men's norms (Science.anchorsM), his week
+(push / legs / pull / conditioning / upper), colours, wording, the male demo figure. Body.java is his BODY tab (US Navy
+body fat, GOD FORM goal, weight trend, arc length) and FUEL missions.
 
 ## The user's rules
 - **Never mention mortality, death or a "longer life" anywhere in the app** (the user, 2026-11-21: "the constant
@@ -20,15 +25,24 @@ The user's daily workout game for Android (plain Java, no third-party libraries;
 - A new exercise in Plan.ALL needs its Demo.get case. Check poses by eye: AppTest.demoSheets draws every keyframe into
   app/build/screens/demo_*.png.
 
+## TRAINING ARC: the user's brief (2026-11-24)
+- For her boyfriend: ~230-240 lb, high body fat but lots of muscle, does push-ups daily, eats chocolate / pizza /
+  donuts and feels bad about it; goal "the Body of a God". Motivating like Tekken / Dragon Ball, appealing to the
+  masculine **without feeling patronizing**: never shame food (FUEL habits, no calorie counting, treats allowed after a
+  meal), use only generic fighting-game / anime language (ROUND, FIGHT!, K.O., POWER LEVEL), never any game's names.
+- Jumping moves wait for the rating (Plan.minRating) because of his weight. Realistic like hers: men's norms, honest
+  arc length (0.5-1% of body weight a week).
+
 ## Data
 - State.SCHEMA is the save format. A change to how ratings are computed raises it and converts old saves in
   Logic.migrate (re-rate tests from their raw results, shift ratings and history by the difference). Never drop data.
 
 ## Releases (the app updates itself from this repo's GitHub releases: Updater.java)
-- Raise versionName in app/build.gradle, add release_notes/<version>.md (players' words: what changed in the app),
-  push to main. .github/workflows/release.yml tests, builds, signs and publishes `v<version>` with the APK.
+- Raise versionName in app/build.gradle, add release_notes/<version>.md (GLOW UP) and release_notes/arc/<version>.md
+  (TRAINING ARC) (players' words: what changed in the app), push to main. Both apps share the version; each release
+  carries GlowUp-<v>.apk and TrainingArc-<v>.apk, and each app's updater takes its own APK and its "## <APP>" section. .github/workflows/release.yml tests, builds, signs and publishes `v<version>` with the APK.
 - Signing: keystore/glowup-release.jks (committed, protected by a long random password). The password is the
   GLOWUP_KEY_PASSWORD repository secret, or keystore/keystore.properties locally (never committed). The key must
   never change: phones refuse an update signed by another key (the workflow checks the certificate's SHA-256).
-- Tests: `gradle testReleaseUnitTest` (16-week rating simulation, her baseline, the old-save conversion, every screen
+- Tests: `gradle testGlowReleaseUnitTest testArcReleaseUnitTest` (pictures in app/build/screens/glow and /arc) (16-week rating simulation, her baseline, the old-save conversion, every screen
   drawn into app/build/screens).

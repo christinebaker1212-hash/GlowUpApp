@@ -142,6 +142,7 @@ public class AppTest {
     /** Her own baseline (2026-11-21), on the current scale. */
     @Test
     public void herBaseline() {
+        org.junit.Assume.assumeFalse("GLOW UP's norms", Flavor.MALE);
         MainActivity a = Robolectric.buildActivity(MainActivity.class).setup().get();
         State s = fresh(a);
         State.Test t = new State.Test();
@@ -182,14 +183,46 @@ public class AppTest {
         assertTrue(old.schemaLoaded == State.SCHEMA);
     }
 
+    /** TRAINING ARC: a big guy with plenty of muscle and push-up practice but little conditioning. */
+    @Test
+    public void hisExample() {
+        org.junit.Assume.assumeTrue("TRAINING ARC's norms", Flavor.MALE);
+        MainActivity a = Robolectric.buildActivity(MainActivity.class).setup().get();
+        State s = fresh(a);
+        s.heightCm = 180;
+        State.Test t = new State.Test();
+        t.raw.put(Science.T_SITRISE, 6.0);
+        t.raw.put(Science.T_BALANCE, 30.0);
+        t.raw.put(Science.T_CHAIR, 16.0);
+        t.raw.put(Science.T_PUSHUP, 30.0);
+        t.raw.put(Science.T_BRIDGE, 25.0);
+        t.raw.put(Science.T_PLANK, 45.0);
+        t.raw.put(Science.T_MARCH, 100.0);
+        double[] c = Logic.finishTest(a, s, t);
+        for (int i = 0; i < 5; i++)
+            System.out.println(String.format(Locale.US, "  %-8s %4.0f  %s", Science.CAT_LABEL[i], c[i], Science.standing(c[i])));
+        double o = Science.overall(s.elo);
+        System.out.println(String.format(Locale.US, "HIS EXAMPLE: power level %.0f, %s (%s)", o, Science.rankName(o), Science.standing(o)));
+        assertTrue("30 push-ups is 75th percentile for a man of 30", Math.abs(c[Science.UPPER] - 1600) < 60);
+        // body fat: 108 cm waist, 41 cm neck, 180 cm -> about 30% (US Navy)
+        double bf = Body.bodyFat(108, 41, 180);
+        System.out.println(String.format(Locale.US, "  body fat at a 42.5 in waist: %.1f%%", bf));
+        assertTrue(bf > 25 && bf < 35);
+        assertTrue(Plan.WEEK[0].equals(Plan.PUSH_DAY));
+        // the jumping moves wait for the joints
+        java.util.List<State.Item> legs = Plan.build(s, LocalDate.now(), Plan.LEG_DAY, 1, false);
+        for (State.Item it : legs) assertTrue("no jump squats at POWER " + s.elo[Science.CURVES], !it.ex.equals("jump_squat"));
+        assertTrue(Updater.section("## GLOW UP\nhers\n## TRAINING ARC\nhis").equals("his"));
+    }
+
     @Test
     public void scaleTopIsReallyOlympic() {
-        // a 3.9 km 12-minute run (VO2max ~76) is Olympic; a fit club runner's 2.6 km is not close
-        assertTrue(Science.testRating(Science.T_COOPER, 3900, 30) >= 2799);
+        // a 3.9 km (women) / 4.1 km (men) 12-minute run is Olympic; a fit club runner's 2.6 km is not close
+        assertTrue(Science.testRating(Science.T_COOPER, Flavor.MALE ? 4100 : 3900, 30) >= 2799);
         assertTrue(Science.testRating(Science.T_COOPER, 2600, 30) < 2100);
         // no march count can claim more than ATHLETIC
         assertTrue(Science.testRating(Science.T_MARCH, 250, 30) <= 1800);
-        assertTrue(Science.rankName(2800).startsWith("OLYMPIAN"));
+        assertTrue(Science.rankName(2800).startsWith(Science.TIERS[7]));
         assertTrue(Science.rankIndex(3199) == 39 && Science.rankIndex(0) == 0);
         assertTrue(Updater.newer("1.10.0", "1.9.3") && !Updater.newer("1.1.0", "1.1.0") && Updater.newer("v2.0", "1.9"));
     }

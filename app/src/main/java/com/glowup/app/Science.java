@@ -17,11 +17,9 @@ final class Science {
 
     // Categories: the five stat bars
     static final int CARDIO = 0, UPPER = 1, CURVES = 2, CORE = 3, BALANCE = 4;
-    static final String[] CAT_LABEL = {"STAMINA", "STRENGTH", "CURVES", "CORE", "BALANCE"};
-    static final String[] CAT_SUB = {
-        "heart & lungs", "arms, back & posture", "glutes, hips & legs", "waist & trunk", "balance & mobility"
-    };
-    static final double[] CAT_WEIGHT = {0.25, 0.15, 0.25, 0.20, 0.15};
+    static final String[] CAT_LABEL = Flavor.CAT_LABEL;
+    static final String[] CAT_SUB = Flavor.CAT_SUB;
+    static final double[] CAT_WEIGHT = Flavor.CAT_WEIGHT;
 
     // Tests
     static final String T_SITRISE = "sitrise", T_BALANCE = "balance", T_CHAIR = "chair", T_PUSHUP = "pushup",
@@ -35,6 +33,40 @@ final class Science {
      * elite race paces. Glute bridges have no published norms: those anchors are estimates.
      */
     static double[][] anchors(String test) {
+        return Flavor.MALE ? anchorsM(test) : anchorsF(test);
+    }
+
+    /**
+     * The same scale for men of about 30: push-ups and plank from ACSM and college norms (Strand 2014: men hold
+     * planks about 50% longer), chair stand and step test a little above women's, the 12-minute run from the Cooper
+     * Institute's men's table and elite race paces. Balance and sit & rise differ little between the sexes.
+     */
+    static double[][] anchorsM(String test) {
+        switch (test) {
+            case T_PUSHUP:
+                return new double[][]{{0, 30}, {2, 100}, {8, 400}, {15, 800}, {21, 1200}, {30, 1600}, {40, 2000},
+                    {60, 2400}, {75, 2600}, {90, 2800}, {130, 3200}};
+            case T_BRIDGE:
+                return new double[][]{{0, 30}, {6, 100}, {15, 400}, {25, 800}, {35, 1200}, {50, 1600}, {70, 2000},
+                    {110, 2400}, {150, 2600}, {200, 2800}, {270, 3200}};
+            case T_CHAIR:
+                return new double[][]{{0, 30}, {9, 100}, {14, 400}, {17, 800}, {20, 1200}, {24, 1600}, {28, 2000},
+                    {35, 2400}, {40, 2600}, {45, 2800}, {50, 3200}};
+            case T_PLANK:
+                return new double[][]{{0, 30}, {10, 100}, {30, 400}, {60, 800}, {90, 1200}, {130, 1600}, {180, 2000},
+                    {300, 2400}, {420, 2600}, {540, 2800}, {900, 3200}};
+            case T_MARCH:
+                return new double[][]{{0, 30}, {65, 100}, {95, 400}, {110, 800}, {120, 1200}, {133, 1600},
+                    {145, 2000}, {165, 2400}};
+            case T_COOPER:
+                return new double[][]{{0, 30}, {1200, 100}, {1700, 400}, {2000, 800}, {2200, 1200}, {2500, 1600},
+                    {2800, 2000}, {3200, 2400}, {3700, 2600}, {4100, 2800}, {4700, 3200}};
+            default:
+                return anchorsF(test);
+        }
+    }
+
+    static double[][] anchorsF(String test) {
         switch (test) {
             case T_PUSHUP: // full push-up equivalents (wall / counter / knee push-ups count for part of one)
                 return new double[][]{{0, 30}, {0.5, 100}, {1.5, 400}, {3.5, 800}, {6, 1200}, {12, 1600}, {20, 2000},
@@ -180,10 +212,10 @@ final class Science {
     static String standing(double r) {
         if (r >= 2800) return "Olympic level";
         if (r >= 2600) return "national-elite level";
-        if (r >= 2400) return "top 1% of women your age";
+        if (r >= 2400) return "top 1% of " + Flavor.PEERS + " your age";
         double p = percentile(r);
-        if (p < 1) return "bottom 1% of women your age";
-        return "better than about " + Math.round(p) + "% of women your age";
+        if (p < 1) return "bottom 1% of " + Flavor.PEERS + " your age";
+        return "better than about " + Math.round(p) + "% of " + Flavor.PEERS + " your age";
     }
 
     /** What someone of this rating and age can do in this test (or exercise basis). */
@@ -236,11 +268,10 @@ final class Science {
     }
 
     // ---- Ranks: 8 tiers x 5 divisions = 40 ranks, 80 points each ----
-    static final String[] TIERS = {"COUCH POTATO", "OFF THE COUCH", "WEEKEND MOVER", "ACTIVE", "ATHLETIC",
-        "COMPETITOR", "ELITE", "OLYMPIAN"};
-    static final String[] TIER_MEANS = {"bottom 10% of women your age", "10th to 30th percentile",
+    static final String[] TIERS = Flavor.TIERS;
+    static final String[] TIER_MEANS = {"bottom 10% of " + Flavor.PEERS + " your age", "10th to 30th percentile",
         "30th to 50th percentile", "50th to 75th percentile", "75th to 90th percentile", "90th to 99th percentile",
-        "top 1% to national elite", "Olympic-level results"};
+        "top 1% to national elite", Flavor.TOP_MEANS};
     static final int[] TIER_COLOR = {0xFF9C8A7A, 0xFFC9A27E, 0xFF7FD1AE, 0xFF4FD8FF, 0xFF9B7BFF, 0xFFFF6FB5,
         0xFFFFC94D, 0xFFFFFFFF};
     static final String[] DIVS = {"V", "IV", "III", "II", "I"};
@@ -284,7 +315,9 @@ final class Science {
     // ---- Steps ----
     /** Daily step goal: grows with STAMINA and with what she has actually been walking lately. */
     static int stepGoal(double cardioElo, int avg7) {
-        int byRating = (int) Math.max(2500, Math.min(12000, 2000 + (cardioElo - 100) * 3));
+        // (his arc is a fat-loss arc: steps matter more, so his goals start higher)
+        int byRating = (int) Math.max(Flavor.MALE ? 5000 : 2500, Math.min(Flavor.MALE ? 14000 : 12000,
+            (Flavor.MALE ? 4000 : 2000) + (cardioElo - 100) * 3));
         int byHabit = (int) Math.min(15000, avg7 * 1.05);
         int g = Math.max(byRating, byHabit);
         return (g + 249) / 250 * 250;

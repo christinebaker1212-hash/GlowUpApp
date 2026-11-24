@@ -1,4 +1,7 @@
-# GLOW UP
+# GLOW UP and TRAINING ARC
+
+Two apps from one code: GLOW UP (`glow`) and TRAINING ARC (`arc`, a fighting-game style training arc toward a lean,
+strong physique). `gradle assembleRelease` builds both.
 
 A daily workout game for Android: an Elo-style FITNESS RATING from COUCH POTATO to OLYMPIAN, XP and levels,
 stat bars (STAMINA, STRENGTH, CURVES, CORE, BALANCE), a plan built around glutes, hips, waist and posture,
@@ -23,6 +26,7 @@ The key is valid for 100 years.
 - Plan.java: the exercise library, the weekly plan, targets from ratings, automatic harder versions
 - Logic.java: daily upkeep (steps, streaks, detraining), workout and test results, trophies
 - Demo.java / DemoView.java / HowTo.java: animated exercise demonstrations and how-to pages
+- Flavor.java / FlavorText.java: everything that differs between the two apps; Body.java: TRAINING ARC's BODY tab and FUEL
 - Updater.java: in-app updates from GitHub releases
 - Steps.java: the hardware step counter, read every 15 minutes; Reminder.java: the daily notification
 - MainActivity / TestFlow / WorkoutFlow / Screens: the screens; State / Store: data, backup and restore

@@ -78,16 +78,27 @@ final class Updater {
         JSONObject o = new JSONObject(bo.toString("UTF-8"));
         Release r = new Release();
         r.version = o.optString("tag_name", "").replaceFirst("^v", "");
-        r.notes = o.optString("body", "");
+        r.notes = section(o.optString("body", ""));
         JSONArray as = o.optJSONArray("assets");
         if (as != null) for (int i = 0; i < as.length(); i++) {
             JSONObject a = as.getJSONObject(i);
-            if (a.optString("name").toLowerCase(Locale.US).endsWith(".apk")) {
+            String name = a.optString("name");
+            // both apps ship in each release: take this app's own APK (GlowUp-... / TrainingArc-...)
+            if (name.toLowerCase(Locale.US).endsWith(".apk") && name.startsWith(BuildConfig.APK_PREFIX)) {
                 r.apkUrl = a.optString("browser_download_url");
                 r.size = a.optLong("size");
             }
         }
         return r.apkUrl == null ? null : r;
+    }
+
+    /** A release's notes hold both apps' sections ("## GLOW UP", "## TRAINING ARC"): keep this app's. */
+    static String section(String body) {
+        String mine = "## " + Flavor.APP, other = "## " + (Flavor.MALE ? "GLOW UP" : "TRAINING ARC");
+        int i = body.indexOf(mine);
+        if (i < 0) return body.contains(other) ? "" : body;
+        int j = body.indexOf(other, i + mine.length());
+        return body.substring(i + mine.length(), j < 0 ? body.length() : j).trim();
     }
 
     /** On opening the app (at most every few hours, quietly), or from ME > CHECK FOR UPDATES (manual). */
@@ -119,7 +130,7 @@ final class Updater {
     static void offer(Activity a, Release r) {
         String notes = r.notes.replaceAll("(?m)^#+\\s*", "").trim();
         new AlertDialog.Builder(a, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("UPDATE: GLOW UP " + r.version)
+            .setTitle("UPDATE: " + Flavor.APP + " " + r.version)
             .setMessage((notes.isEmpty() ? "A new version is ready." : notes) + "\n\nYour progress stays exactly as it is.")
             .setPositiveButton("UPDATE NOW", (d, w) -> install(a, r))
             .setNegativeButton("LATER", null)

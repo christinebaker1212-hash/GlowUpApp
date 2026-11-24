@@ -22,13 +22,17 @@ import java.util.List;
 final class Ui {
     private Ui() {}
 
-    static final int BG = 0xFF0D0912, CARD = 0xFF1A1324, CARD2 = 0xFF261B35, LINE = 0xFF3A2C4E,
-        PINK = 0xFFFF4FA3, PURPLE = 0xFF9B5CFF, GOLD = 0xFFFFC94D, TEXT = 0xFFF7F0FF, DIM = 0xFFA898BF,
+    // (PINK / PURPLE are the accent colours: in TRAINING ARC they're electric orange and blue)
+    static final boolean M = Flavor.MALE;
+    static final int BG = M ? 0xFF070A12 : 0xFF0D0912, CARD = M ? 0xFF111827 : 0xFF1A1324,
+        CARD2 = M ? 0xFF1B2538 : 0xFF261B35, LINE = M ? 0xFF2C3A55 : 0xFF3A2C4E,
+        PINK = M ? 0xFFFF7A1A : 0xFFFF4FA3, PURPLE = M ? 0xFF3D7BFF : 0xFF9B5CFF, GOLD = 0xFFFFC94D,
+        TEXT = M ? 0xFFF2F5FF : 0xFFF7F0FF, DIM = M ? 0xFF8C9AB8 : 0xFFA898BF,
         GREEN = 0xFF4CE0A0, RED = 0xFFFF5A6E, CYAN = 0xFF4FD8FF, ORANGE = 0xFFFF9A4D;
-    static final int[] CAT_COLOR = {CYAN, ORANGE, PINK, PURPLE, GREEN};
+    static final int[] CAT_COLOR = M ? new int[]{CYAN, 0xFFFF7A1A, 0xFFFF4D6A, 0xFFB78CFF, GREEN} : new int[]{CYAN, ORANGE, PINK, PURPLE, GREEN};
     static final int[] DIFF_COLOR = {GREEN, CYAN, ORANGE, RED};
 
-    static final Typeface HEAD = Typeface.create("sans-serif-condensed", Typeface.BOLD);
+    static final Typeface HEAD = Typeface.create("sans-serif-condensed", Flavor.MALE ? Typeface.BOLD_ITALIC : Typeface.BOLD);
     static final Typeface BODY = Typeface.create("sans-serif", Typeface.NORMAL);
     static final Typeface BOLD = Typeface.create("sans-serif", Typeface.BOLD);
 
